@@ -5,10 +5,10 @@ Browse a list of more than 300 games with detailed information and links to revi
 
 ### Screenshots:
 
-![Print 1](https://github.com/gguelber/games-hub/assets/35288118/876955f3-1ee9-41ca-85d4-77781b04290f)
-![Print 2](https://github.com/gguelber/games-hub/assets/35288118/7db924c2-8a0c-417f-96a8-603f368b648c)
-![Print 3](https://github.com/gguelber/games-hub/assets/35288118/3b617cbe-4ad8-4b94-9803-96d28c432bb3)
-![Print 4](https://github.com/gguelber/games-hub/assets/35288118/2a023cfc-e8ce-4e47-ad04-f6ed3e43ea34)
+![Print 1](https://github.com/gguelber/games-hub/assets/35288118/5dfce68b-7cc0-483f-8eb9-4a3c6ea22898)
+![Print 2](https://github.com/gguelber/games-hub/assets/35288118/d8a9d63d-bbf0-4376-a3f8-884aab3a0235)
+![Print 3](https://github.com/gguelber/games-hub/assets/35288118/00bccccb-c6be-4131-9ef3-e32dc9b42532)
+![Print 4](https://github.com/gguelber/games-hub/assets/35288118/b1233ddb-dc8b-40b8-849d-ce580409fef0)
 
 ### Libraries:
 
