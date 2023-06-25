@@ -4,10 +4,9 @@ Welcome to the Gaming Hub project. A collection of the best games of all times.
 Browse a list of more than 300 games with detailed information and links to reviews and their official websites.
 
 ### Screenshots:
-
-![Uploading Print 1.png…]()
-![Uploading Print 2.png…]()
-![Uploading Print 3.png…]()
+![Print 1](https://github.com/gguelber/games-hub/assets/35288118/2b662644-9627-4555-a77e-5087d785090b)
+![Print 2](https://github.com/gguelber/games-hub/assets/35288118/4623bef9-9bd6-403c-9096-88ac34e360fe)
+![Print 3](https://github.com/gguelber/games-hub/assets/35288118/bd3080f4-cde5-4d4c-aa31-5299a762cd0a)
 ![Print 4](https://github.com/gguelber/games-hub/assets/35288118/36179fc4-6d6d-4b92-b14c-1f4527d0f2f7)
 
 ### Libraries:
