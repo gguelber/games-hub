@@ -1,22 +1,30 @@
+
 Welcome to the Gaming Hub project. A collection of the best games of all times.
 
 Browse a list of more than 300 games with detailed information and links to reviews and their official websites.
 
-## Libraries:
+### Screenshots:
 
-# SWR
+![Uploading Print 1.png…]()
+![Uploading Print 2.png…]()
+![Uploading Print 3.png…]()
+![Print 4](https://github.com/gguelber/games-hub/assets/35288118/36179fc4-6d6d-4b92-b14c-1f4527d0f2f7)
+
+### Libraries:
+
+## SWR
 
 For this project, we used the SWR library from Vercel to handle the API calls and cache the response.
 
-# MaterialUI
+## MaterialUI
 
 The styling was made using materialUI
 
-# Axios
+## Axios
 
 Used to define the methods, headers and response from the API call
 
-# Redux-toolkit
+## Redux-toolkit
 
 Used to manage the state for the application
 
