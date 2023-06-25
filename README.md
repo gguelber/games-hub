@@ -3,6 +3,10 @@ Welcome to the Gaming Hub project. A collection of the best games of all times.
 
 Browse a list of more than 300 games with detailed information and links to reviews and their official websites.
 
+### Demo:
+To see the demo for this project, open the this link:
+https://games-hub-nu.vercel.app/
+
 ### Screenshots:
 
 ![Print 1](https://github.com/gguelber/games-hub/assets/35288118/5dfce68b-7cc0-483f-8eb9-4a3c6ea22898)
