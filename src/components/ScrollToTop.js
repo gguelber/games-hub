@@ -1,20 +1,22 @@
 import React from 'react';
 
-import { Fab, Tooltip, Zoom } from '@mui/material';
+import { Fab, Tooltip, Zoom, useScrollTrigger } from '@mui/material';
 
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
 const ScrollToTop = ({ scrollPosition }) => {
+  const trigger = useScrollTrigger({
+    disableHysteresis: true,
+    threshold: 100,
+  });
   return (
-    <Zoom in={true}>
+    <Zoom in={trigger}>
       <Tooltip title='Scroll to top'>
         <Fab
           color='primary'
           aria-label='add'
           size='small'
-          onClick={() =>
-            window.scrollTo({ top: 0, behavior: 'smooth' })
-          }
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           sx={{
             position: 'fixed',
             bottom: 20,
@@ -23,7 +25,6 @@ const ScrollToTop = ({ scrollPosition }) => {
             opacity: 0.6,
             backgroundColor: '#c9c9c9',
             '&:hover': { backgroundColor: '#a8a8a8' },
-            display: scrollPosition === 0 ? 'none' : 'flex',
           }}
         >
           <KeyboardArrowUpIcon />

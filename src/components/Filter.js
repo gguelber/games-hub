@@ -6,6 +6,7 @@ import {
   InputLabel,
   MenuItem,
   Paper,
+  Rating,
   Select,
   TextField,
   Typography,
@@ -17,6 +18,7 @@ const Filter = ({
   handleSelectedGenre,
   handleSelectedPlatform,
   handleSelectedSorting,
+  handleSelectedRating,
   handlePlatforms,
   handleGenres,
   handleShuffle,
@@ -25,6 +27,7 @@ const Filter = ({
   selectedGenre,
   selectedPlatform,
   selectedSorting,
+  selectedRating,
 }) => {
   return (
     <Paper
@@ -58,7 +61,7 @@ const Filter = ({
         Filters:
       </Typography>
       <TextField
-        id='outlined-basic'
+        id='search-title'
         label='Search by title'
         variant='outlined'
         onChange={handleTitle}
@@ -81,11 +84,12 @@ const Filter = ({
           width: { md: 110 },
         }}
         size='small'
+        id='genre-form-field'
       >
-        <InputLabel id='genre-helper-label'>Genre</InputLabel>
+        <InputLabel id='genre-filter-label'>Genre</InputLabel>
         <Select
-          labelId='genre-helper-label'
-          id='genre-helper'
+          labelId='genre-filter-label'
+          id='genre-filter'
           value={selectedGenre}
           label='Genre'
           onChange={handleSelectedGenre}
@@ -105,13 +109,12 @@ const Filter = ({
           width: { md: 240 },
         }}
         size='small'
+        id='platform-form-field'
       >
-        <InputLabel id='genre-helper-label'>
-          Platform
-        </InputLabel>
+        <InputLabel id='platform-filter-label'>Platform</InputLabel>
         <Select
-          labelId='genre-helper-label'
-          id='genre-helper'
+          labelId='platform-filter-label'
+          id='platform-filter'
           value={selectedPlatform}
           label='Platform'
           onChange={handleSelectedPlatform}
@@ -131,15 +134,14 @@ const Filter = ({
           width: { md: 130 },
         }}
         size='small'
+        id='sort-form-field'
       >
-        <InputLabel id='genre-helper-label'>Sort</InputLabel>
+        <InputLabel id='sort-filter-label'>Sort</InputLabel>
         <Select
-          labelId='genre-helper-label'
-          id='genre-helper'
-          value={
-            selectedSorting !== 'random' ? selectedSorting : ''
-          }
-          label='Platform'
+          labelId='sort-filter-label'
+          id='sort-filter'
+          value={selectedSorting !== 'random' ? selectedSorting : ''}
+          label='Sort'
           onChange={handleSelectedSorting}
         >
           <MenuItem value=''>
@@ -149,17 +151,51 @@ const Filter = ({
           <MenuItem value='descending'>Descending</MenuItem>
         </Select>
       </FormControl>
-      <Button
-        variant='contained'
-        onClick={handleShuffle}
-        color={'inherit'}
+      <FormControl
+        sx={{
+          m: 0,
+          mr: { md: 2 },
+          mb: { xs: 1, md: 0 },
+          maxWidth: { xs: 220, md: 136 },
+          width: { md: 136 },
+        }}
+        size='small'
+        id='rating-form-field'
       >
+        <InputLabel id='rating-filter-label'>Rating</InputLabel>
+        <Select
+          labelId='rating-filter-label'
+          id='rating-filter'
+          value={selectedRating}
+          label='Rating'
+          onChange={handleSelectedRating}
+        >
+          <MenuItem value=''>
+            <em>None</em>
+          </MenuItem>
+          <MenuItem value='best'>Best</MenuItem>
+          <MenuItem value='worse'>Worse</MenuItem>
+          <MenuItem value='1'>
+            <Rating name='read-only' value={1} readOnly size='small' />
+          </MenuItem>
+          <MenuItem value='2'>
+            <Rating name='read-only' value={2} readOnly size='small' />
+          </MenuItem>
+          <MenuItem value='3'>
+            <Rating name='read-only' value={3} readOnly size='small' />
+          </MenuItem>
+          <MenuItem value='4'>
+            <Rating name='read-only' value={4} readOnly size='small' />
+          </MenuItem>
+          <MenuItem value='5'>
+            <Rating name='read-only' value={5} readOnly size='small' />
+          </MenuItem>
+        </Select>
+      </FormControl>
+      <Button variant='contained' onClick={handleShuffle} color={'inherit'}>
         Shuffle
       </Button>
-      {(selectedGenre ||
-        selectedPlatform ||
-        selectedSorting ||
-        gameTitle) && (
+      {(selectedGenre || selectedPlatform || selectedSorting || gameTitle) && (
         <Chip
           sx={{
             ml: { md: 2 },

@@ -6,9 +6,13 @@ const initialFilterState = {
   genreFilter: '',
   platformFilter: '',
   sortingFilter: '',
+  ratingFilter: '',
   clickedGame: {},
   gamesList: [],
-  scrollPosition: 0,
+  favoritesList: [],
+  ratingsList: [],
+  totalFavoritesList: [],
+  totalRatingsList: [],
 };
 
 const gameFilterSlice = createSlice({
@@ -36,15 +40,27 @@ const gameFilterSlice = createSlice({
     setSortingFilter(state, action) {
       state.sortingFilter = action.payload;
     },
-    setScrollPosition(state, action) {
-      state.scrollPosition = action.payload;
+    setRatingFilter(state, action) {
+      state.ratingFilter = action.payload;
     },
-
+    setFavoritesList(state, action) {
+      state.favoritesList = action.payload;
+    },
+    setRatingsList(state, action) {
+      state.ratingsList = action.payload;
+    },
+    setTotalFavoritesList(state, action) {
+      state.totalFavoritesList = action.payload;
+    },
+    setTotalRatingsList(state, action) {
+      state.totalRatingsList = action.payload;
+    },
     resetFilter(state) {
       state.titleFilter = '';
       state.genreFilter = '';
       state.platformFilter = '';
       state.sortingFilter = '';
+      state.ratingFilter = '';
     },
   },
 });

@@ -16,6 +16,7 @@ import {
   InputLabel,
   MenuItem,
   Modal,
+  Rating,
   Select,
   Snackbar,
   SwipeableDrawer,
@@ -27,10 +28,14 @@ import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 
 import { useQueryGames } from '../services/gamesServices';
 import { gameFilterActions } from '../store/gameFilter';
-import GameCard from './GameCard';
-import FullGameCard from './FullGameCard';
-import Filter from './Filter';
-import ScrollToTop from './ScrollToTop';
+import GameCard from '../components/GameCard';
+import FullGameCard from '../components/FullGameCard';
+import Filter from '../components/Filter';
+import ScrollToTop from '../components/ScrollToTop';
+
+import { collection, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase-config';
+import { handleSnackbar } from '../utils/snackBar';
 
 const formStyle = {
   m: 2,
@@ -49,47 +54,46 @@ const Main = () => {
 
   // State to handle the card opening
   const [open, setOpen] = useState(false);
-  // State to handle the snackbar to display the error message
-  const [openError, setOpenError] = useState(false);
-  // State to store the error message, if there's an error
-  const [errorMessage, setErrorMessage] = useState('');
+  // State to handle the snackbar to display the message
+  const [openSnackBar, setOpenSnackbar] = useState(false);
+  // State to store the message
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  // State to define the color (severity) of the message
+  const [snackbarSeverity, setSnackbarSeverity] = useState('error');
 
   // Variable to dispatch actions to redux-toolkit store
   const dispatch = useDispatch();
+
+  const favoritesCollectionRef = collection(db, 'favorites');
+  const ratingsCollectionRef = collection(db, 'ratings');
 
   // State to handle the 'ScrollToTop' component
   const scrollPosition = useSelector(
     (state) => state.gameFilter.scrollPosition
   );
-
+  // State to handle the user
+  const user = useSelector((state) => state.userData.user);
   // State to handle the drawer component
-  const drawerOpener = useSelector(
-    (state) => state.gameFilter.drawerOpener
-  );
+  const drawerOpener = useSelector((state) => state.gameFilter.drawerOpener);
   // State to handle the selected genre
-  const selectedGenre = useSelector(
-    (state) => state.gameFilter.genreFilter
-  );
+  const selectedGenre = useSelector((state) => state.gameFilter.genreFilter);
   // State to handle the selected platform
   const selectedPlatform = useSelector(
     (state) => state.gameFilter.platformFilter
   );
   // State to handle the title input value
-  const gameTitle = useSelector(
-    (state) => state.gameFilter.titleFilter
-  );
+  const gameTitle = useSelector((state) => state.gameFilter.titleFilter);
   // State to store the clicked game card
-  const clickedGame = useSelector(
-    (state) => state.gameFilter.clickedGame
-  );
+  const clickedGame = useSelector((state) => state.gameFilter.clickedGame);
   // State to handle the games list after filtering and sorting
-  const gamesList = useSelector(
-    (state) => state.gameFilter.gamesList
-  );
+  const gamesList = useSelector((state) => state.gameFilter.gamesList);
   // State to handle the selected sorting method
   const selectedSorting = useSelector(
     (state) => state.gameFilter.sortingFilter
   );
+  const selectedRating = useSelector((state) => state.gameFilter.ratingFilter);
+  const favoritesList = useSelector((state) => state.gameFilter.favoritesList);
+  const ratingsList = useSelector((state) => state.gameFilter.ratingsList);
 
   // Function to open the game card modal
   const handleOpen = (game) => {
@@ -138,21 +142,18 @@ const Main = () => {
 
   // Function to handle the selected genre that will be used to filter the games list
   const handleSelectedGenre = (event) => {
-    dispatch(
-      gameFilterActions.setGenreFilter(event.target.value)
-    );
+    dispatch(gameFilterActions.setGenreFilter(event.target.value));
   };
   // Function to handle the selected platform that will be used to filter the games list
   const handleSelectedPlatform = (event) => {
-    dispatch(
-      gameFilterActions.setPlatformFilter(event.target.value)
-    );
+    dispatch(gameFilterActions.setPlatformFilter(event.target.value));
   };
   // Function to handle the selected sorting method that will be used to sort the games list
   const handleSelectedSorting = (event) => {
-    dispatch(
-      gameFilterActions.setSortingFilter(event.target.value)
-    );
+    dispatch(gameFilterActions.setSortingFilter(event.target.value));
+  };
+  const handleSelectedRating = (event) => {
+    dispatch(gameFilterActions.setRatingFilter(event.target.value));
   };
   // Function to handle the button to sort the games list randomly
   const handleShuffle = () => {
@@ -161,18 +162,20 @@ const Main = () => {
   };
   // Function to handle the game's title input value that will be used to filter the games list
   const handleTitle = (event) => {
-    dispatch(
-      gameFilterActions.setTitleFilter(event.target.value)
-    );
+    dispatch(gameFilterActions.setTitleFilter(event.target.value));
   };
 
   // Function to handle all possible errors returned by the API
   const handleError = () => {
     if (error.code === 'ECONNABORTED') {
-      console.log(error);
-      setOpenError(true);
-      setErrorMessage(
-        'O servidor demorou para responder, tente mais tarde.'
+      // console.log(error);
+      handleSnackbar(
+        handleCloseSnackbar,
+        setSnackbarMessage,
+        'O servidor demorou para responder, tente mais tarde.',
+        setSnackbarSeverity,
+        'error',
+        setOpenSnackbar
       );
     } else if (
       error.response.status === 509 ||
@@ -183,49 +186,89 @@ const Main = () => {
       error.response.status === 502 ||
       error.response.status === 500
     ) {
-      console.log(error);
-      setOpenError(true);
-      setErrorMessage(
-        'O servidor falhou em responder, tente recarregar a página.'
+      // console.log(error);
+      handleSnackbar(
+        handleCloseSnackbar,
+        setSnackbarMessage,
+        'O servidor falhou em responder, tente recarregar a página.',
+        setSnackbarSeverity,
+        'error',
+        setOpenSnackbar
       );
     } else {
-      console.log(error);
-      setOpenError(true);
-      setErrorMessage(
-        'O servidor não conseguirá responder por agora, tente voltar novamente mais tarde.'
+      // console.log(error);
+      handleSnackbar(
+        handleCloseSnackbar,
+        setSnackbarMessage,
+        'O servidor não conseguirá responder por agora, tente voltar novamente mais tarde.',
+        setSnackbarSeverity,
+        'error',
+        setOpenSnackbar
       );
     }
   };
 
   // Function to handle the error state and close the snackbar
-  const handleCloseError = () => {
-    setOpenError(false);
-    setErrorMessage('');
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpenSnackbar(false);
   };
 
-  // Function to update the games list based on the selected filters andsorting methods
+  // Function to update the games list based on the selected filters and sorting methods
   const handleGamesList = (games) => {
-    const tempGamesList = games.data
+    const tempGamesList = games.data.map((game) => {
+      const tempGame = {
+        ...game,
+        favorite: false,
+        rating: null,
+        favoriteDocId: null,
+        ratingDocId: null,
+      };
+      if (favoritesList.length) {
+        favoritesList.map((favorite) => {
+          if (favorite.id === game.id) {
+            tempGame.favorite = true;
+            tempGame.favoriteDocId = favorite.docId;
+          }
+        });
+      }
+      if (ratingsList.length) {
+        ratingsList.map((rating) => {
+          if (rating.id === game.id) {
+            tempGame.rating = rating.rating;
+            tempGame.ratingDocId = rating.docId;
+          }
+        });
+      }
+      return tempGame;
+    });
+    const newGamesList = tempGamesList
       .filter((game) => {
         return gameTitle === ''
           ? game
-          : game.title
-              .toLowerCase()
-              .includes(gameTitle.toLowerCase());
+          : game.title.toLowerCase().includes(gameTitle.toLowerCase());
       })
       .filter((game) => {
-        return selectedGenre === ''
-          ? game
-          : selectedGenre === game.genre;
+        return selectedGenre === '' ? game : selectedGenre === game.genre;
       })
       .filter((game) => {
         return selectedPlatform === ''
           ? game
           : selectedPlatform === game.platform;
+      })
+      .filter((game) => {
+        return selectedRating === '' ||
+          selectedRating === 'best' ||
+          selectedRating === 'worse'
+          ? game
+          : Number(selectedRating) === game.rating;
       });
 
-    handleSortingMethod(tempGamesList);
-    dispatch(gameFilterActions.setGamesList(tempGamesList));
+    handleSortingMethod(newGamesList);
+    handleRatingMethod(newGamesList);
+    dispatch(gameFilterActions.setGamesList(newGamesList));
   };
 
   // Function to handle the selected sorting method
@@ -268,52 +311,154 @@ const Main = () => {
     }
   };
 
+  // Function to handle the selected rating method (Best or Worse)
+  const handleRatingMethod = (gamesList) => {
+    switch (selectedRating) {
+      case 'best':
+        gamesList.sort((a, b) => {
+          const ratingA = a.rating;
+          const ratingB = b.rating;
+
+          if (ratingA === null && ratingB !== null) {
+            return 1;
+          }
+          if (ratingA !== null && ratingB === null) {
+            return -1;
+          }
+          if (ratingA !== null && ratingB !== null) {
+            if (ratingA > ratingB) {
+              return -1;
+            }
+            if (ratingA < ratingB) {
+              return 1;
+            }
+          }
+          return 0;
+        });
+        break;
+
+      case 'worse':
+        gamesList.sort((a, b) => {
+          const ratingA = a.rating;
+          const ratingB = b.rating;
+
+          if (ratingA === null && ratingB !== null) {
+            return 1;
+          }
+          if (ratingA !== null && ratingB === null) {
+            return -1;
+          }
+          if (ratingA !== null && ratingB !== null) {
+            if (ratingA < ratingB) {
+              return -1;
+            }
+            if (ratingA > ratingB) {
+              return 1;
+            }
+          }
+          return 0;
+        });
+        break;
+
+      default:
+        break;
+    }
+  };
+
   // Function to reset all fields and filter/sorting states
   const handleReset = () => {
     dispatch(gameFilterActions.resetFilter());
   };
 
-  // Function to handle the scrolling position and update the correct state
-  const handleScrollPosition = () => {
-    window.scrollY === 0
-      ? dispatch(gameFilterActions.setScrollPosition(0))
-      : dispatch(gameFilterActions.setScrollPosition(1));
-  };
-
+  // Cloud Firestore listener for favorites and ratings data, also an unsubscribe function
   useEffect(() => {
-    window.addEventListener('scroll', handleScrollPosition);
+    const unsubscribeFavorites = onSnapshot(
+      favoritesCollectionRef,
+      (snapshot) => {
+        const tempTotalFavoritesList = [];
+        snapshot.docs.map((doc) => {
+          tempTotalFavoritesList.push({
+            id: doc.data().id,
+          });
+        });
+        if (user) {
+          const tempFavoritesList = [];
+          snapshot.docs.map((doc) => {
+            if (user.uid === doc.data().userId) {
+              tempFavoritesList.push({ ...doc.data(), docId: doc.id });
+            }
+          });
+          dispatch(gameFilterActions.setFavoritesList(tempFavoritesList));
+        }
+        dispatch(
+          gameFilterActions.setTotalFavoritesList(tempTotalFavoritesList)
+        );
+      },
+      (error) => {
+        dispatch(gameFilterActions.setFavoritesList([]));
+        // console.log(error.message);
+      }
+    );
+
+    const unsubscribeRatings = onSnapshot(
+      ratingsCollectionRef,
+      (snapshot) => {
+        const tempTotalRatingsList = [];
+        snapshot.docs.map((doc) => {
+          tempTotalRatingsList.push({
+            id: doc.data().id,
+            rating: doc.data().rating,
+          });
+        });
+        if (user) {
+          const tempRatingsList = [];
+          snapshot.docs.map((doc) => {
+            if (user.uid === doc.data().userId) {
+              tempRatingsList.push({ ...doc.data(), docId: doc.id });
+            }
+          });
+          dispatch(gameFilterActions.setRatingsList(tempRatingsList));
+        }
+        dispatch(gameFilterActions.setTotalRatingsList(tempTotalRatingsList));
+      },
+      (error) => {
+        dispatch(gameFilterActions.setRatingsList([]));
+        // console.log(error.message);
+      }
+    );
 
     return () => {
-      window.removeEventListener(
-        'scroll',
-        handleScrollPosition
-      );
+      unsubscribeFavorites();
+      unsubscribeRatings();
     };
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     error && handleError();
     games && handleGamesList(games);
   }, [
     games,
+    favoritesList,
+    ratingsList,
     selectedGenre,
     selectedPlatform,
     selectedSorting,
+    selectedRating,
     gameTitle,
     error,
   ]);
 
   return (
-    <Box>
+    <Box
+      sx={{
+        minHeight: { xs: 'calc(100vh - 112px)', sm: 'calc(100vh - 128px)' },
+      }}
+    >
       <SwipeableDrawer
         anchor={'left'}
         open={drawerOpener}
-        onOpen={() =>
-          dispatch(gameFilterActions.setDrawerOpener())
-        }
-        onClose={() =>
-          dispatch(gameFilterActions.setDrawerOpener())
-        }
+        onOpen={() => dispatch(gameFilterActions.setDrawerOpener())}
+        onClose={() => dispatch(gameFilterActions.setDrawerOpener())}
       >
         <Box
           elevation={3}
@@ -322,7 +467,6 @@ const Main = () => {
             flexDirection: 'column',
             justifyContent: 'center',
             width: 250,
-
             mt: 6,
           }}
         >
@@ -339,16 +483,13 @@ const Main = () => {
           <TextField
             id='outlined-basic'
             label='Search by title'
-            variant='outlined'
             onChange={handleTitle}
             value={gameTitle}
             sx={formStyle}
             size='small'
           />
           <FormControl sx={formStyle} size='small'>
-            <InputLabel id='genre-helper-label'>
-              Genre
-            </InputLabel>
+            <InputLabel id='genre-helper-label'>Genre</InputLabel>
             <Select
               labelId='genre-helper-label'
               id='genre-helper'
@@ -364,12 +505,10 @@ const Main = () => {
             </Select>
           </FormControl>
           <FormControl sx={formStyle} size='small'>
-            <InputLabel id='genre-helper-label'>
-              Platform
-            </InputLabel>
+            <InputLabel id='platform-helper-label'>Platform</InputLabel>
             <Select
-              labelId='genre-helper-label'
-              id='genre-helper'
+              labelId='platform-helper-label'
+              id='platform-helper'
               value={selectedPlatform}
               label='Platform'
               onChange={handleSelectedPlatform}
@@ -382,19 +521,13 @@ const Main = () => {
             </Select>
           </FormControl>
           <FormControl sx={formStyle} size='small'>
-            <InputLabel id='genre-helper-label'>
-              Sort
-            </InputLabel>
+            <InputLabel id='sort-helper-label'>Sort</InputLabel>
             <Select
-              labelId='genre-helper-label'
-              id='genre-helper'
-              value={
-                selectedSorting !== 'random'
-                  ? selectedSorting
-                  : ''
-              }
+              labelId='sort-helper-label'
+              id='sort-helper'
+              value={selectedSorting !== 'random' ? selectedSorting : ''}
               autoWidth
-              label='Platform'
+              label='Sort'
               onChange={handleSelectedSorting}
             >
               <MenuItem value=''>
@@ -402,6 +535,38 @@ const Main = () => {
               </MenuItem>
               <MenuItem value='ascending'>Ascending</MenuItem>
               <MenuItem value='descending'>Descending</MenuItem>
+            </Select>
+          </FormControl>
+          <FormControl sx={formStyle} size='small'>
+            <InputLabel id='rating-helper-label'>Rating</InputLabel>
+            <Select
+              labelId='rating-helper-label'
+              id='rating-helper'
+              value={selectedRating}
+              autoWidth
+              label='Rating'
+              onChange={handleSelectedRating}
+            >
+              <MenuItem value=''>
+                <em>None</em>
+              </MenuItem>
+              <MenuItem value='best'>Best</MenuItem>
+              <MenuItem value='worse'>Worse</MenuItem>
+              <MenuItem value='1'>
+                <Rating name='read-only' value={1} readOnly size='small' />
+              </MenuItem>
+              <MenuItem value='2'>
+                <Rating name='read-only' value={2} readOnly size='small' />
+              </MenuItem>
+              <MenuItem value='3'>
+                <Rating name='read-only' value={3} readOnly size='small' />
+              </MenuItem>
+              <MenuItem value='4'>
+                <Rating name='read-only' value={4} readOnly size='small' />
+              </MenuItem>
+              <MenuItem value='5'>
+                <Rating name='read-only' value={5} readOnly size='small' />
+              </MenuItem>
             </Select>
           </FormControl>
           <Button
@@ -415,6 +580,7 @@ const Main = () => {
           {(selectedGenre ||
             selectedPlatform ||
             selectedSorting ||
+            selectedRating ||
             gameTitle) && (
             <Chip
               sx={{
@@ -430,20 +596,20 @@ const Main = () => {
         </Box>
       </SwipeableDrawer>
       <Snackbar
-        open={openError}
-        autoHideDuration={5000}
-        onClose={handleCloseError}
+        open={openSnackBar}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
         anchorOrigin={{
           vertical: 'bottom',
           horizontal: 'center',
         }}
       >
         <Alert
-          onClose={handleCloseError}
-          severity='error'
+          onClose={handleCloseSnackbar}
+          severity={snackbarSeverity}
           sx={{ width: '100%' }}
         >
-          {errorMessage}
+          {snackbarMessage}
         </Alert>
       </Snackbar>
       <Modal
@@ -470,29 +636,28 @@ const Main = () => {
                 xs: '80vw',
                 sm: '70vw',
                 md: '60vw',
-                lg: '60vw',
-                xl: '50vw',
+                lg: '40vw',
+                xl: '30vw',
+              },
+              maxHeight: {
+                xs: '85%',
+                md: '95%',
               },
               bgcolor: 'background.paper',
               boxShadow: 24,
               p: 0,
+              overflowY: 'auto',
             }}
           >
             <FullGameCard game={clickedGame} />
           </Box>
         </Fade>
       </Modal>
-      <Container sx={{ textAlign: 'center', mt: 4, mb: 3 }}>
-        <Typography
-          variant='h6'
-          fontSize={{ xs: 18, sm: 22, lg: 28 }}
-        >
-          Welcome to the Gamer Hub
+      <Container sx={{ textAlign: 'center', pt: 4, mb: 3 }}>
+        <Typography variant='h6' fontSize={{ xs: 18, sm: 22, lg: 28 }}>
+          Welcome to the Games Hub
         </Typography>
-        <Typography
-          variant='h1'
-          fontSize={{ xs: 12, sm: 14, lg: 18 }}
-        >
+        <Typography variant='h1' fontSize={{ xs: 12, sm: 14, lg: 18 }}>
           A collection of the best games of all times
         </Typography>
       </Container>
@@ -512,10 +677,12 @@ const Main = () => {
           handleShuffle={handleShuffle}
           handleReset={handleReset}
           handleSelectedSorting={handleSelectedSorting}
+          handleSelectedRating={handleSelectedRating}
           gameTitle={gameTitle}
           selectedGenre={selectedGenre}
           selectedPlatform={selectedPlatform}
           selectedSorting={selectedSorting}
+          selectedRating={selectedRating}
         />
       </Container>
       <Divider />
@@ -527,7 +694,7 @@ const Main = () => {
       >
         <Chip
           icon={<SportsEsportsIcon />}
-          label={`Results: ${gamesList.length}`}
+          label={`Games: ${gamesList.length}`}
           color={gamesList.length > 0 ? 'success' : 'error'}
           variant='outlined'
         />
@@ -545,15 +712,16 @@ const Main = () => {
               key={game.id}
               game={game}
               click={() => handleOpen(game)}
+              setSnackbar={setOpenSnackbar}
+              setSnackbarMessage={setSnackbarMessage}
+              setSnackbarSeverity={setSnackbarSeverity}
+              closeSnackbar={handleCloseSnackbar}
             />
           ))}
         </Grid>
       ) : error ? (
         <Container sx={{ mt: 8, textAlign: 'center' }}>
-          <Button
-            variant='contained'
-            onClick={() => window.location.reload()}
-          >
+          <Button variant='contained' onClick={() => window.location.reload()}>
             Refresh page
           </Button>
         </Container>

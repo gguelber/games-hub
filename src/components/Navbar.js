@@ -1,19 +1,32 @@
 import {
+  Alert,
   AppBar,
+  Avatar,
+  Badge,
+  Box,
+  Button,
+  Menu,
+  MenuItem,
+  Snackbar,
   Switch,
   Toolbar,
   Typography,
   styled,
 } from '@mui/material';
 
+import { signOut } from 'firebase/auth';
+
 import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { darkModeActions } from '../store/darkMode';
 import { gameFilterActions } from '../store/gameFilter';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { auth } from '../firebase-config';
 
 // Custom Toolbar component
 const StyledToolBar = styled(Toolbar)({
@@ -23,8 +36,8 @@ const StyledToolBar = styled(Toolbar)({
 
 // Custom Switch component
 const MaterialUISwitch = styled(Switch)(({ theme }) => ({
-  width: 62,
-  height: 34,
+  width: 54,
+  height: 26,
   padding: 7,
   '& .MuiSwitch-switchBase': {
     margin: 1,
@@ -40,16 +53,14 @@ const MaterialUISwitch = styled(Switch)(({ theme }) => ({
       },
       '& + .MuiSwitch-track': {
         opacity: 1,
-        backgroundColor:
-          theme.palette.mode === 'dark' ? '#8796A5' : '#aab4be',
+        backgroundColor: theme.palette.mode === 'dark' ? '#8796A5' : '#aab4be',
       },
     },
   },
   '& .MuiSwitch-thumb': {
-    backgroundColor:
-      theme.palette.mode === 'dark' ? '#003892' : '#001e3c',
-    width: 32,
-    height: 32,
+    backgroundColor: theme.palette.mode === 'dark' ? '#003892' : '#001e3c',
+    width: 24,
+    height: 24,
     '&:before': {
       content: "''",
       position: 'absolute',
@@ -66,65 +77,199 @@ const MaterialUISwitch = styled(Switch)(({ theme }) => ({
   },
   '& .MuiSwitch-track': {
     opacity: 1,
-    backgroundColor:
-      theme.palette.mode === 'dark' ? '#8796A5' : '#aab4be',
+    backgroundColor: theme.palette.mode === 'dark' ? '#8796A5' : '#aab4be',
     borderRadius: 20 / 2,
   },
 }));
 
 const Navbar = () => {
-  const dispatch = useDispatch();
+  const [openSnackBar, setOpenSnackBar] = useState(false);
+  const [snackbarSeverity, setSnackbarSeverity] = useState('error');
+  const [snackbarMessage, setSnackbarMessage] = useState('');
 
+  const location = useLocation();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const user = useSelector((state) => state.userData.user);
+  const favoritesList = useSelector((state) => state.gameFilter.favoritesList);
+  const badgeClass = useSelector((state) => state.animationMode.badgeClass);
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+
+    setOpenSnackBar(false);
+  };
+
+  const handleLogout = () => {
+    handleMenuClose();
+    signOut(auth)
+      .then(() => {
+        setSnackbarMessage('Logged out');
+        setSnackbarSeverity('success');
+        setOpenSnackBar(true);
+      })
+      .catch((error) => {
+        setSnackbarMessage(error.code);
+        setSnackbarSeverity('error');
+        setOpenSnackBar(true);
+      });
+  };
   // Store the state for light and dark mode
-  const darkModeBool = useSelector(
-    (state) => state.darkMode.darkModeBool
-  );
+  const darkModeBool = useSelector((state) => state.darkMode.darkModeBool);
+
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const open = Boolean(anchorEl);
+
+  const handleMenuOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
   // Function to handle the dark mode's switch and state
   const handleDarkMode = (event) => {
     event.target.checked
       ? dispatch(darkModeActions.setDarkMode('dark'))
       : dispatch(darkModeActions.setDarkMode('light'));
-    dispatch(
-      darkModeActions.setDarkModeBool(event.target.checked)
-    );
+    dispatch(darkModeActions.setDarkModeBool(event.target.checked));
+  };
+
+  const handleHomeMenu = () => {
+    navigate('/');
+    handleMenuClose();
   };
 
   useEffect(() => {
-    document.body.style.backgroundColor = darkModeBool
-      ? '#121212'
-      : '#FFFFFF';
+    document.body.style.backgroundColor = darkModeBool ? '#121212' : '#FFFFFF';
   }, [darkModeBool]);
 
   return (
     <AppBar position='sticky'>
       <StyledToolBar>
+        <Snackbar
+          open={openSnackBar}
+          autoHideDuration={2000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'center',
+          }}
+        >
+          <Alert
+            onClose={handleCloseSnackbar}
+            severity={snackbarSeverity}
+            sx={{ width: '100%' }}
+          >
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
+        <Menu
+          id='basic-menu'
+          anchorEl={anchorEl}
+          open={open}
+          onClose={handleMenuClose}
+          MenuListProps={{
+            'aria-labelledby': 'basic-button',
+          }}
+        >
+          <MenuItem onClick={handleHomeMenu}>Home</MenuItem>
+
+          <MenuItem onClick={handleLogout}>Logout</MenuItem>
+        </Menu>
         <IconButton
           size='large'
           edge='start'
           color='inherit'
           aria-label='menu'
           sx={{ mr: 2, display: { lg: 'none' } }}
-          onClick={() =>
-            dispatch(gameFilterActions.setDrawerOpener())
-          }
+          onClick={() => dispatch(gameFilterActions.setDrawerOpener())}
         >
           <MenuIcon />
         </IconButton>
-        <Typography
-          variant='h6'
-          sx={{ display: { xs: 'none', sm: 'block' } }}
-        >
-          GAMER HUB
+        <Typography variant='h6' sx={{ display: { xs: 'none', sm: 'block' } }}>
+          GAMES HUB
         </Typography>
         <SportsEsportsIcon
           fontSize='large'
           sx={{ display: { xs: 'block', sm: 'none' } }}
         />
-        <MaterialUISwitch
-          sx={{ m: 1 }}
-          checked={darkModeBool}
-          onChange={handleDarkMode}
-        />
+        <Box>
+          <MaterialUISwitch
+            sx={{ m: 1 }}
+            checked={darkModeBool}
+            onChange={handleDarkMode}
+          />
+
+          {user ? (
+            <>
+              <IconButton
+                size='medium'
+                aria-label='favorites-page-button'
+                color={'text.primary'}
+                onClick={() => navigate('favorites')}
+                sx={{ mr: 1 }}
+              >
+                <Badge
+                  badgeContent={favoritesList.length}
+                  color='secondary'
+                  anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'right',
+                  }}
+                >
+                  <FavoriteIcon
+                    color='error'
+                    fontSize='medium'
+                    className={badgeClass}
+                  />
+                </Badge>
+              </IconButton>
+
+              <IconButton
+                size='small'
+                edge='end'
+                aria-controls={open ? 'basic-menu' : undefined}
+                aria-haspopup='true'
+                aria-expanded={open ? 'true' : undefined}
+                onClick={handleMenuOpen}
+                color='inherit'
+              >
+                <Avatar
+                  sx={{
+                    width: { xs: 32, sm: 33, md: 36 },
+                    height: { xs: 32, sm: 33, md: 36 },
+                  }}
+                >
+                  {user.email.substr(0, 1).toUpperCase()}
+                </Avatar>
+              </IconButton>
+            </>
+          ) : location.pathname === '/favorites' ? (
+            <Button
+              color='inherit'
+              onClick={() => {
+                navigate('/');
+              }}
+            >
+              Home
+            </Button>
+          ) : (
+            <Button
+              color='inherit'
+              onClick={() => {
+                location.pathname === '/auth'
+                  ? navigate('/')
+                  : navigate('auth');
+              }}
+            >
+              {location.pathname === '/auth' ? 'Home' : 'Login'}
+            </Button>
+          )}
+        </Box>
       </StyledToolBar>
     </AppBar>
   );
