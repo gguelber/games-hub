@@ -190,12 +190,17 @@ const Navbar = () => {
         >
           <MenuIcon />
         </IconButton>
-        <Typography variant='h6' sx={{ display: { xs: 'none', sm: 'block' } }}>
+        <Typography
+          variant='h6'
+          sx={{ display: { xs: 'none', sm: 'block' }, cursor: 'pointer' }}
+          onClick={() => navigate('/')}
+        >
           GAMES HUB
         </Typography>
         <SportsEsportsIcon
           fontSize='large'
-          sx={{ display: { xs: 'block', sm: 'none' } }}
+          sx={{ display: { xs: 'block', sm: 'none' }, cursor: 'pointer' }}
+          onClick={() => navigate('/')}
         />
         <Box>
           <MaterialUISwitch
