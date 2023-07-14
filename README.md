@@ -1,4 +1,4 @@
-Welcome to the Gaming Hub project. A collection of the best games of all times.
+Welcome to the Games Hub project. A collection of the best games of all times.
 
 Browse a list of more than 300 games with detailed information and links to reviews and their official websites.
 
@@ -14,9 +14,9 @@ https://games-hub-nu.vercel.app/
 ![Print 3](https://github.com/gguelber/games-hub/assets/35288118/00bccccb-c6be-4131-9ef3-e32dc9b42532)
 ![Print 4](https://github.com/gguelber/games-hub/assets/35288118/b1233ddb-dc8b-40b8-849d-ce580409fef0)
 
-## Libraries:
+### Libraries:
 
-### Firebase
+#### Firebase
 
 The Firebase SDK was used to handle authentication and Cloud Firestore data, such as Favorites and Ratings
 
@@ -36,7 +36,7 @@ All routes were handled using react-router-dom
 
 For this project, the SWR library from Vercel was used to handle the API calls and cache the response.
 
-### MaterialUI
+#### MaterialUI
 
 The styling was made using materialUI
 
