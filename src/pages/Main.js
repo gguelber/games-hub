@@ -251,7 +251,7 @@ const Main = () => {
     if (isPaginationActive) {
       const startIdx = (currentPage - 1) * pageSize;
       const endIdx = startIdx + pageSize;
-      newGamesList.length <= pageSize &&
+      newGamesList.length <= pageSize * (currentPage - 1) &&
         dispatch(paginationModeActions.setCurrentPage(1));
       dispatch(
         paginationModeActions.setPrePaginatedListLength(newGamesList.length)
@@ -427,7 +427,6 @@ const Main = () => {
   }, [user]);
 
   useEffect(() => {
-    console.log('executei');
     error && handleError();
     games && handleGamesList(games);
   }, [

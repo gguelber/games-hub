@@ -269,7 +269,7 @@ const Favorites = () => {
     if (isFavoritesPaginationActive) {
       const startIdx = (favoritesCurrentPage - 1) * favoritesPageSize;
       const endIdx = startIdx + favoritesPageSize;
-      newGamesList.length <= favoritesPageSize &&
+      newGamesList.length <= favoritesPageSize * (favoritesCurrentPage - 1) &&
         dispatch(paginationModeActions.setFavoritesCurrentPage(1));
       dispatch(
         paginationModeActions.setFavoritesPrePaginatedListLength(
@@ -446,7 +446,6 @@ const Favorites = () => {
   }, [user]);
 
   useEffect(() => {
-    console.log('executei');
     error && handleError();
     games && handleGamesList(games);
   }, [
