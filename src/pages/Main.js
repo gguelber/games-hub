@@ -121,7 +121,7 @@ const Main = () => {
 
   // Function to handle the selected genre that will be used to filter the games list
   const handleSelectedGenre = (event) => {
-    dispatch(gameFilterActions.setselectedGenre(event.target.value));
+    dispatch(gameFilterActions.setGenreFilter(event.target.value));
   };
   // Function to handle the selected platform that will be used to filter the games list
   const handleSelectedPlatform = (event) => {
