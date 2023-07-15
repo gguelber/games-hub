@@ -2,34 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import {
-  Alert,
-  Backdrop,
   Box,
   Button,
-  Chip,
   CircularProgress,
   Container,
   Divider,
-  Fade,
-  FormControl,
   Grid,
-  InputLabel,
   MenuItem,
-  Modal,
-  Rating,
-  Select,
-  Snackbar,
-  SwipeableDrawer,
-  TextField,
   Typography,
 } from '@mui/material';
-
-import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 
 import { useQueryGames } from '../services/gamesServices';
 import { gameFilterActions } from '../store/gameFilter';
 import GameCard from '../components/GameCard';
-import FullGameCard from '../components/FullGameCard';
 import Filter from '../components/Filter';
 import ScrollToTop from '../components/ScrollToTop';
 
@@ -38,11 +23,13 @@ import { db } from '../firebase-config';
 
 import { handleSnackbar } from '../utils/snackBar';
 import { useNavigate } from 'react-router-dom';
-
-const formStyle = {
-  m: 2,
-  mb: 4,
-};
+import PaginationComponent from '../components/PaginationComponent';
+import PaginationControl from '../components/PaginationControl';
+import PageDescription from '../components/PageDescription';
+import FullGameCardModal from '../components/FullGameCardModal';
+import SnackbarComponent from '../components/SnackbarComponent';
+import DrawerMenu from '../components/DrawerMenu';
+import { paginationModeActions } from '../store/paginationMode';
 
 const Favorites = () => {
   // Fetch the games from the API using SWR and stores on the 'game' variable. If there's an error, store it on the 'error' variable.
@@ -76,33 +63,30 @@ const Favorites = () => {
   const favoritesCollectionRef = collection(db, 'favorites');
   const ratingsCollectionRef = collection(db, 'ratings');
 
-  // State to handle the 'ScrollToTop' component
-  const scrollPosition = useSelector(
-    (state) => state.gameFilter.scrollPosition
-  );
+  const {
+    isFavoritesPaginationActive,
+    favoritesPageSize,
+    favoritesCurrentPage,
+    favoritesPrePaginatedListLength,
+  } = useSelector((state) => state.paginationMode);
+
+  // States from the gamesFilter slice
+  const {
+    drawerOpener,
+    selectedGenre,
+    selectedPlatform,
+    gameTitle,
+    clickedGame,
+    gamesList,
+    selectedSorting,
+    selectedRating,
+    favoritesList,
+    ratingsList,
+    scrollPosition,
+  } = useSelector((state) => state.gameFilter);
+
   // State to handle the user
   const user = useSelector((state) => state.userData.user);
-  // State to handle the drawer component
-  const drawerOpener = useSelector((state) => state.gameFilter.drawerOpener);
-  // State to handle the selected genre
-  const selectedGenre = useSelector((state) => state.gameFilter.genreFilter);
-  // State to handle the selected platform
-  const selectedPlatform = useSelector(
-    (state) => state.gameFilter.platformFilter
-  );
-  // State to handle the title input value
-  const gameTitle = useSelector((state) => state.gameFilter.titleFilter);
-  // State to store the clicked game card
-  const clickedGame = useSelector((state) => state.gameFilter.clickedGame);
-  // State to handle the games list after filtering and sorting
-  const gamesList = useSelector((state) => state.gameFilter.gamesList);
-  // State to handle the selected sorting method
-  const selectedSorting = useSelector(
-    (state) => state.gameFilter.sortingFilter
-  );
-  const selectedRating = useSelector((state) => state.gameFilter.ratingFilter);
-  const favoritesList = useSelector((state) => state.gameFilter.favoritesList);
-  const ratingsList = useSelector((state) => state.gameFilter.ratingsList);
 
   // Function to open the game card modal
   const handleOpen = (game) => {
@@ -237,7 +221,7 @@ const Favorites = () => {
         ratingDocId: null,
       };
       if (favoritesList.length) {
-        favoritesList.map((favorite) => {
+        favoritesList.find((favorite) => {
           if (favorite.id === game.id) {
             tempGame.favorite = true;
             tempGame.favoriteDocId = favorite.docId;
@@ -245,7 +229,7 @@ const Favorites = () => {
         });
       }
       if (ratingsList.length) {
-        ratingsList.map((rating) => {
+        ratingsList.find((rating) => {
           if (rating.id === game.id) {
             tempGame.rating = rating.rating;
             tempGame.ratingDocId = rating.docId;
@@ -281,7 +265,23 @@ const Favorites = () => {
 
     handleSortingMethod(newGamesList);
     handleRatingMethod(newGamesList);
-    dispatch(gameFilterActions.setGamesList(newGamesList));
+
+    if (isFavoritesPaginationActive) {
+      const startIdx = (favoritesCurrentPage - 1) * favoritesPageSize;
+      const endIdx = startIdx + favoritesPageSize;
+      newGamesList.length <= favoritesPageSize &&
+        dispatch(paginationModeActions.setFavoritesCurrentPage(1));
+      dispatch(
+        paginationModeActions.setFavoritesPrePaginatedListLength(
+          newGamesList.length
+        )
+      );
+      const paginatedItems = newGamesList.slice(startIdx, endIdx);
+
+      dispatch(gameFilterActions.setGamesList(paginatedItems));
+    } else {
+      dispatch(gameFilterActions.setGamesList(newGamesList));
+    }
   };
 
   // Function to handle the selected sorting method
@@ -446,6 +446,7 @@ const Favorites = () => {
   }, [user]);
 
   useEffect(() => {
+    console.log('executei');
     error && handleError();
     games && handleGamesList(games);
   }, [
@@ -458,6 +459,9 @@ const Favorites = () => {
     selectedRating,
     gameTitle,
     error,
+    favoritesCurrentPage,
+    isFavoritesPaginationActive,
+    favoritesPageSize,
   ]);
 
   return (
@@ -466,254 +470,66 @@ const Favorites = () => {
         minHeight: { xs: 'calc(100vh - 112px)', sm: 'calc(100vh - 128px)' },
       }}
     >
-      <SwipeableDrawer
-        anchor={'left'}
-        open={drawerOpener}
-        onOpen={() => dispatch(gameFilterActions.setDrawerOpener())}
-        onClose={() => dispatch(gameFilterActions.setDrawerOpener())}
-      >
-        <Box
-          elevation={3}
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            width: 250,
-            mt: 6,
-          }}
-        >
-          <Typography
-            variant='h5'
-            sx={{
-              fontSize: 25,
-              mb: 4,
-            }}
-            textAlign='center'
-          >
-            Filters
-          </Typography>
-          <TextField
-            id='outlined-basic'
-            label='Search by title'
-            variant='outlined'
-            onChange={handleTitle}
-            value={gameTitle}
-            sx={formStyle}
-            size='small'
-          />
-          <FormControl sx={formStyle} size='small'>
-            <InputLabel id='genre-drawer-label'>Genre</InputLabel>
-            <Select
-              labelId='genre-drawer-label'
-              id='genre-drawer'
-              value={selectedGenre}
-              label='Genre'
-              onChange={handleSelectedGenre}
-              autoWidth
-            >
-              <MenuItem value=''>
-                <em>None</em>
-              </MenuItem>
-              {games && handleGenres(games.data)}
-            </Select>
-          </FormControl>
-          <FormControl sx={formStyle} size='small'>
-            <InputLabel id='platform-drawer-label'>Platform</InputLabel>
-            <Select
-              labelId='platform-drawer-label'
-              id='platform-drawer'
-              value={selectedPlatform}
-              label='Platform'
-              onChange={handleSelectedPlatform}
-              autoWidth
-            >
-              <MenuItem value=''>
-                <em>None</em>
-              </MenuItem>
-              {games && handlePlatforms(games.data)}
-            </Select>
-          </FormControl>
-          <FormControl sx={formStyle} size='small'>
-            <InputLabel id='sort-drawer-label'>Sort</InputLabel>
-            <Select
-              labelId='sort-drawer-label'
-              id='sort-drawer'
-              value={selectedSorting !== 'random' ? selectedSorting : ''}
-              autoWidth
-              label='Sort'
-              onChange={handleSelectedSorting}
-            >
-              <MenuItem value=''>
-                <em>None</em>
-              </MenuItem>
-              <MenuItem value='ascending'>Ascending</MenuItem>
-              <MenuItem value='descending'>Descending</MenuItem>
-            </Select>
-          </FormControl>
-          <FormControl sx={formStyle} size='small'>
-            <InputLabel id='rating-helper-label'>Rating</InputLabel>
-            <Select
-              labelId='rating-helper-label'
-              id='rating-helper'
-              value={selectedRating}
-              autoWidth
-              label='Rating'
-              onChange={handleSelectedRating}
-            >
-              <MenuItem value=''>
-                <em>None</em>
-              </MenuItem>
-              <MenuItem value='best'>Best</MenuItem>
-              <MenuItem value='worse'>Worse</MenuItem>
-              <MenuItem value='1'>
-                <Rating name='read-only' value={1} readOnly size='small' />
-              </MenuItem>
-              <MenuItem value='2'>
-                <Rating name='read-only' value={2} readOnly size='small' />
-              </MenuItem>
-              <MenuItem value='3'>
-                <Rating name='read-only' value={3} readOnly size='small' />
-              </MenuItem>
-              <MenuItem value='4'>
-                <Rating name='read-only' value={4} readOnly size='small' />
-              </MenuItem>
-              <MenuItem value='5'>
-                <Rating name='read-only' value={5} readOnly size='small' />
-              </MenuItem>
-            </Select>
-          </FormControl>
-          <Button
-            variant='contained'
-            color='inherit'
-            onClick={handleShuffle}
-            sx={{ m: 2 }}
-          >
-            Shuffle
-          </Button>
-          {(selectedGenre ||
-            selectedPlatform ||
-            selectedSorting ||
-            gameTitle) && (
-            <Chip
-              sx={{
-                ml: { md: 2 },
-                mt: { xs: 2, md: 0 },
-                width: 'fit-content',
-                alignSelf: 'center',
-              }}
-              label='Reset'
-              onDelete={handleReset}
-            />
-          )}
-        </Box>
-      </SwipeableDrawer>
-      <Snackbar
-        open={openSnackBar}
-        autoHideDuration={3000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'center',
-        }}
-      >
-        <Alert
-          onClose={handleCloseSnackbar}
-          severity={snackbarSeverity}
-          sx={{ width: '100%' }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
-      <Modal
-        aria-labelledby='transition-modal-title'
-        aria-describedby='transition-modal-description'
+      <DrawerMenu
+        drawerOpener={drawerOpener}
+        handleTitle={handleTitle}
+        gameTitle={gameTitle}
+        selectedGenre={selectedGenre}
+        selectedPlatform={selectedPlatform}
+        selectedSorting={selectedSorting}
+        selectedRating={selectedRating}
+        handleSelectedGenre={handleSelectedGenre}
+        handleSelectedPlatform={handleSelectedPlatform}
+        handleSelectedSorting={handleSelectedSorting}
+        handleSelectedRating={handleSelectedRating}
+        handleGenres={handleGenres}
+        handlePlatforms={handlePlatforms}
+        handleShuffle={handleShuffle}
+        handleReset={handleReset}
+        games={games}
+      />
+      <SnackbarComponent
+        openSnackBar={openSnackBar}
+        handleCloseSnackbar={handleCloseSnackbar}
+        snackbarSeverity={snackbarSeverity}
+        snackbarMessage={snackbarMessage}
+      />
+      <FullGameCardModal
         open={open}
-        onClose={handleClose}
-        closeAfterTransition
-        slots={{ backdrop: Backdrop }}
-        slotProps={{
-          backdrop: {
-            timeout: 500,
-          },
-        }}
-      >
-        <Fade in={open}>
-          <Box
-            sx={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: {
-                xs: '80vw',
-                sm: '70vw',
-                md: '60vw',
-                lg: '40vw',
-                xl: '30vw',
-              },
-              maxHeight: {
-                xs: '85%',
-                md: '95%',
-              },
-              bgcolor: 'background.paper',
-              boxShadow: 24,
-              p: 0,
-              overflowY: 'auto',
-            }}
-          >
-            <FullGameCard game={clickedGame} />
-          </Box>
-        </Fade>
-      </Modal>
+        handleClose={handleClose}
+        clickedGame={clickedGame}
+      />
       {user && (
         <>
-          <Container sx={{ textAlign: 'center', pt: 4, mb: 3 }}>
-            <Typography variant='h6' fontSize={{ xs: 18, sm: 22, lg: 28 }}>
-              Favorites
-            </Typography>
-            <Typography variant='h1' fontSize={{ xs: 12, sm: 14, lg: 18 }}>
-              The list of games that changed your life
-            </Typography>
-          </Container>
-
-          <Container
-            sx={{
-              display: { xs: 'none', lg: 'flex' },
-              justifyContent: 'center',
-            }}
-          >
-            <Filter
-              games={games}
-              handleTitle={handleTitle}
-              handleSelectedGenre={handleSelectedGenre}
-              handleSelectedPlatform={handleSelectedPlatform}
-              handlePlatforms={handlePlatforms}
-              handleGenres={handleGenres}
-              handleShuffle={handleShuffle}
-              handleReset={handleReset}
-              handleSelectedSorting={handleSelectedSorting}
-              handleSelectedRating={handleSelectedRating}
-              gameTitle={gameTitle}
-              selectedGenre={selectedGenre}
-              selectedPlatform={selectedPlatform}
-              selectedSorting={selectedSorting}
-              selectedRating={selectedRating}
-            />
-          </Container>
+          <PageDescription
+            title='Favorites'
+            subtitle='The list of games that changed your life'
+          />
+          <Filter
+            games={games}
+            handleTitle={handleTitle}
+            handleSelectedGenre={handleSelectedGenre}
+            handleSelectedPlatform={handleSelectedPlatform}
+            handlePlatforms={handlePlatforms}
+            handleGenres={handleGenres}
+            handleShuffle={handleShuffle}
+            handleReset={handleReset}
+            handleSelectedSorting={handleSelectedSorting}
+            handleSelectedRating={handleSelectedRating}
+            gameTitle={gameTitle}
+            selectedGenre={selectedGenre}
+            selectedPlatform={selectedPlatform}
+            selectedSorting={selectedSorting}
+            selectedRating={selectedRating}
+          />
           <Divider />
-          <Container
-            sx={{
-              mt: { xs: 2, sm: 4, md: 6, lg: 6, xl: 6 },
-              textAlign: 'center',
-            }}
-          >
-            <Chip
-              icon={<SportsEsportsIcon />}
-              label={`Games: ${gamesList.length}`}
-              color={gamesList.length > 0 ? 'success' : 'error'}
-              variant='outlined'
-            />
-          </Container>
+          <PaginationControl
+            isPaginationActive={isFavoritesPaginationActive}
+            pageSize={favoritesPageSize}
+            games={games}
+            gamesList={gamesList}
+            mainPage={false}
+          />
         </>
       )}
       {!user && !isValidating ? (
@@ -730,7 +546,7 @@ const Favorites = () => {
           container
           columnSpacing={10}
           rowSpacing={{ xs: 4, sm: 6, md: 4 }}
-          padding={{ xs: 5, sm: 8, md: 8, lg: 10, xl: 14 }}
+          padding={{ xs: 5, sm: 8, md: 8, lg: 10, xl: 8 }}
         >
           <ScrollToTop scrollPosition={scrollPosition} />
           {gamesList.map((game) => (
@@ -755,6 +571,15 @@ const Favorites = () => {
         <Container sx={{ mt: 10, textAlign: 'center' }}>
           <CircularProgress />
         </Container>
+      )}
+
+      {games && isFavoritesPaginationActive && !!gamesList.length && (
+        <PaginationComponent
+          prePaginatedListLength={favoritesPrePaginatedListLength}
+          pageSize={favoritesPageSize}
+          currentPage={favoritesCurrentPage}
+          mainPage={false}
+        />
       )}
     </Box>
   );

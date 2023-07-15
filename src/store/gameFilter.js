@@ -2,17 +2,19 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialFilterState = {
   drawerOpener: false,
-  titleFilter: '',
-  genreFilter: '',
-  platformFilter: '',
-  sortingFilter: '',
-  ratingFilter: '',
+  gameTitle: '',
+  selectedGenre: '',
+  selectedPlatform: '',
+  selectedSorting: '',
+  selectedRating: '',
   clickedGame: {},
   gamesList: [],
   favoritesList: [],
   ratingsList: [],
   totalFavoritesList: [],
   totalRatingsList: [],
+  paginationMode: true,
+  favoritesPaginationMode: false,
 };
 
 const gameFilterSlice = createSlice({
@@ -23,13 +25,13 @@ const gameFilterSlice = createSlice({
       state.drawerOpener = !state.drawerOpener;
     },
     setTitleFilter(state, action) {
-      state.titleFilter = action.payload;
+      state.gameTitle = action.payload;
     },
     setGenreFilter(state, action) {
-      state.genreFilter = action.payload;
+      state.selectedGenre = action.payload;
     },
     setPlatformFilter(state, action) {
-      state.platformFilter = action.payload;
+      state.selectedPlatform = action.payload;
     },
     setClickedGame(state, action) {
       state.clickedGame = action.payload;
@@ -38,10 +40,10 @@ const gameFilterSlice = createSlice({
       state.gamesList = action.payload;
     },
     setSortingFilter(state, action) {
-      state.sortingFilter = action.payload;
+      state.selectedSorting = action.payload;
     },
     setRatingFilter(state, action) {
-      state.ratingFilter = action.payload;
+      state.selectedRating = action.payload;
     },
     setFavoritesList(state, action) {
       state.favoritesList = action.payload;
@@ -55,12 +57,18 @@ const gameFilterSlice = createSlice({
     setTotalRatingsList(state, action) {
       state.totalRatingsList = action.payload;
     },
+    setPaginationMode(state) {
+      state.paginationMode = !state.paginationMode;
+    },
+    setFavoritesPaginationMode(state) {
+      state.favoritesPaginationMode = !state.favoritesPaginationMode;
+    },
     resetFilter(state) {
-      state.titleFilter = '';
-      state.genreFilter = '';
-      state.platformFilter = '';
-      state.sortingFilter = '';
-      state.ratingFilter = '';
+      state.gameTitle = '';
+      state.selectedGenre = '';
+      state.selectedPlatform = '';
+      state.selectedSorting = '';
+      state.selectedRating = '';
     },
   },
 });

@@ -1,105 +1,89 @@
-import React from 'react';
 import {
+  Box,
   Button,
   Chip,
-  Container,
   FormControl,
   InputLabel,
   MenuItem,
-  Paper,
   Rating,
   Select,
+  SwipeableDrawer,
   TextField,
   Typography,
 } from '@mui/material';
+import React from 'react';
+import { gameFilterActions } from '../store/gameFilter';
+import { useDispatch } from 'react-redux';
 
-const Filter = ({
-  games,
+const formStyle = {
+  m: 2,
+  mb: 4,
+};
+
+const DrawerMenu = ({
+  drawerOpener,
   handleTitle,
-  handleSelectedGenre,
-  handleSelectedPlatform,
-  handleSelectedSorting,
-  handleSelectedRating,
-  handlePlatforms,
-  handleGenres,
-  handleShuffle,
-  handleReset,
   gameTitle,
   selectedGenre,
+  handleSelectedGenre,
+  handleGenres,
   selectedPlatform,
+  handleSelectedPlatform,
+  handlePlatforms,
   selectedSorting,
+  handleSelectedSorting,
   selectedRating,
+  handleSelectedRating,
+  handleShuffle,
+  handleReset,
+  games,
 }) => {
+  const dispatch = useDispatch();
+
   return (
-    <Container
-      sx={{
-        display: { xs: 'none', lg: 'flex' },
-        justifyContent: 'center',
-      }}
+    <SwipeableDrawer
+      anchor={'left'}
+      open={drawerOpener}
+      onOpen={() => dispatch(gameFilterActions.setDrawerOpener())}
+      onClose={() => dispatch(gameFilterActions.setDrawerOpener())}
     >
-      <Paper
+      <Box
         elevation={3}
-        bgcolor={'background.default'}
-        color={'text.primary'}
         sx={{
           display: 'flex',
-          flexDirection: { xs: 'column', md: 'row' },
+          flexDirection: 'column',
           justifyContent: 'center',
-          alignItems: { md: 'center' },
-          p: 2,
-          m: 4,
-          width: 'fit-content',
+          width: 250,
+          mt: 6,
         }}
       >
         <Typography
           variant='h5'
           sx={{
-            fontSize: {
-              xs: 12,
-              sm: 14,
-              md: 16,
-              lg: 18,
-              xl: 20,
-            },
-            mb: { xs: 2, md: 0 },
-            mr: { md: 2 },
+            fontSize: 25,
+            mb: 4,
           }}
+          textAlign='center'
         >
-          Filters:
+          Filters
         </Typography>
         <TextField
-          id='search-title'
+          id='outlined-basic'
           label='Search by title'
-          variant='outlined'
           onChange={handleTitle}
           value={gameTitle}
-          sx={{
-            mb: { xs: 1, md: 0 },
-            mr: { md: 2 },
-            maxWidth: 220,
-            width: { md: 220 },
-          }}
+          sx={formStyle}
           size='small'
         />
-
-        <FormControl
-          sx={{
-            m: 0,
-            mb: { xs: 1, md: 0 },
-            mr: { md: 2 },
-            maxWidth: { xs: 220, md: 110 },
-            width: { md: 110 },
-          }}
-          size='small'
-          id='genre-form-field'
-        >
-          <InputLabel id='genre-filter-label'>Genre</InputLabel>
+        <FormControl sx={formStyle} size='small'>
+          <InputLabel id='genre-helper-label'>Genre</InputLabel>
           <Select
-            labelId='genre-filter-label'
-            id='genre-filter'
+            labelId='genre-helper-label'
+            id='genre-helper'
             value={selectedGenre}
             label='Genre'
             onChange={handleSelectedGenre}
+            autoWidth
           >
             <MenuItem value=''>
               <em>None</em>
@@ -107,24 +91,15 @@ const Filter = ({
             {games && handleGenres(games.data)}
           </Select>
         </FormControl>
-        <FormControl
-          sx={{
-            m: 0,
-            mr: { md: 2 },
-            mb: { xs: 1, md: 0 },
-            maxWidth: { xs: 220, md: 240 },
-            width: { md: 240 },
-          }}
-          size='small'
-          id='platform-form-field'
-        >
-          <InputLabel id='platform-filter-label'>Platform</InputLabel>
+        <FormControl sx={formStyle} size='small'>
+          <InputLabel id='platform-helper-label'>Platform</InputLabel>
           <Select
-            labelId='platform-filter-label'
-            id='platform-filter'
+            labelId='platform-helper-label'
+            id='platform-helper'
             value={selectedPlatform}
             label='Platform'
             onChange={handleSelectedPlatform}
+            autoWidth
           >
             <MenuItem value=''>
               <em>None</em>
@@ -132,22 +107,13 @@ const Filter = ({
             {games && handlePlatforms(games.data)}
           </Select>
         </FormControl>
-        <FormControl
-          sx={{
-            m: 0,
-            mr: { md: 2 },
-            mb: { xs: 1, md: 0 },
-            maxWidth: { xs: 220, md: 130 },
-            width: { md: 130 },
-          }}
-          size='small'
-          id='sort-form-field'
-        >
-          <InputLabel id='sort-filter-label'>Sort</InputLabel>
+        <FormControl sx={formStyle} size='small'>
+          <InputLabel id='sort-helper-label'>Sort</InputLabel>
           <Select
-            labelId='sort-filter-label'
-            id='sort-filter'
+            labelId='sort-helper-label'
+            id='sort-helper'
             value={selectedSorting !== 'random' ? selectedSorting : ''}
+            autoWidth
             label='Sort'
             onChange={handleSelectedSorting}
           >
@@ -158,22 +124,13 @@ const Filter = ({
             <MenuItem value='descending'>Descending</MenuItem>
           </Select>
         </FormControl>
-        <FormControl
-          sx={{
-            m: 0,
-            mr: { md: 2 },
-            mb: { xs: 1, md: 0 },
-            maxWidth: { xs: 220, md: 136 },
-            width: { md: 136 },
-          }}
-          size='small'
-          id='rating-form-field'
-        >
-          <InputLabel id='rating-filter-label'>Rating</InputLabel>
+        <FormControl sx={formStyle} size='small'>
+          <InputLabel id='rating-helper-label'>Rating</InputLabel>
           <Select
-            labelId='rating-filter-label'
-            id='rating-filter'
+            labelId='rating-helper-label'
+            id='rating-helper'
             value={selectedRating}
+            autoWidth
             label='Rating'
             onChange={handleSelectedRating}
           >
@@ -199,12 +156,18 @@ const Filter = ({
             </MenuItem>
           </Select>
         </FormControl>
-        <Button variant='contained' onClick={handleShuffle} color={'inherit'}>
+        <Button
+          variant='contained'
+          color='inherit'
+          onClick={handleShuffle}
+          sx={{ m: 2 }}
+        >
           Shuffle
         </Button>
         {(selectedGenre ||
           selectedPlatform ||
           selectedSorting ||
+          selectedRating ||
           gameTitle) && (
           <Chip
             sx={{
@@ -217,9 +180,9 @@ const Filter = ({
             onDelete={handleReset}
           />
         )}
-      </Paper>
-    </Container>
+      </Box>
+    </SwipeableDrawer>
   );
 };
 
-export default Filter;
+export default DrawerMenu;
