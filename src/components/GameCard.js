@@ -372,6 +372,7 @@ const GameCard = ({
                     name={`simple-controlled-${game.id}`}
                     value={ratingValue}
                     className={ratingClicked}
+                    max={4}
                     onChange={(event, newValue) =>
                       handleRatings(event, newValue, game)
                     }

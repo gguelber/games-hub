@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useTransition } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import {
@@ -37,6 +37,8 @@ const Main = () => {
     revalidateOnReconnect: false,
     shouldRetryOnError: false,
   });
+
+  const [isPending, startTransition] = useTransition();
 
   // State to handle the card opening
   const [open, setOpen] = useState(false);
@@ -258,9 +260,13 @@ const Main = () => {
       );
       const paginatedItems = newGamesList.slice(startIdx, endIdx);
 
-      dispatch(gameFilterActions.setGamesList(paginatedItems));
+      startTransition(() =>
+        dispatch(gameFilterActions.setGamesList(paginatedItems))
+      );
     } else {
-      dispatch(gameFilterActions.setGamesList(newGamesList));
+      startTransition(() =>
+        dispatch(gameFilterActions.setGamesList(newGamesList))
+      );
     }
   };
 

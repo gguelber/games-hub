@@ -183,19 +183,40 @@ const Filter = ({
             <MenuItem value='best'>Best</MenuItem>
             <MenuItem value='worse'>Worse</MenuItem>
             <MenuItem value='1'>
-              <Rating name='read-only' value={1} readOnly size='small' />
+              <Rating
+                name='read-only'
+                max={4}
+                value={1}
+                readOnly
+                size='small'
+              />
             </MenuItem>
             <MenuItem value='2'>
-              <Rating name='read-only' value={2} readOnly size='small' />
+              <Rating
+                name='read-only'
+                max={4}
+                value={2}
+                readOnly
+                size='small'
+              />
             </MenuItem>
             <MenuItem value='3'>
-              <Rating name='read-only' value={3} readOnly size='small' />
+              <Rating
+                name='read-only'
+                max={4}
+                value={3}
+                readOnly
+                size='small'
+              />
             </MenuItem>
             <MenuItem value='4'>
-              <Rating name='read-only' value={4} readOnly size='small' />
-            </MenuItem>
-            <MenuItem value='5'>
-              <Rating name='read-only' value={5} readOnly size='small' />
+              <Rating
+                name='read-only'
+                max={4}
+                value={4}
+                readOnly
+                size='small'
+              />
             </MenuItem>
           </Select>
         </FormControl>

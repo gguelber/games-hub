@@ -154,6 +154,7 @@ const FullGameCard = ({ game }) => {
               </Typography>
               <Rating
                 value={Number(ratingAvg.toFixed(1))}
+                max={4}
                 precision={0.1}
                 readOnly
                 size='small'
@@ -172,7 +173,7 @@ const FullGameCard = ({ game }) => {
                 color='text.secondary'
                 fontSize={typographyStyle}
               >
-                ({ratingCounter})
+                {ratingCounter}
               </Typography>
             </Box>
           ) : (
