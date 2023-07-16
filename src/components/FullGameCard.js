@@ -173,7 +173,7 @@ const FullGameCard = ({ game }) => {
                 color='text.secondary'
                 fontSize={typographyStyle}
               >
-                {ratingCounter}
+                ({ratingCounter})
               </Typography>
             </Box>
           ) : (
